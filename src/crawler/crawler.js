@@ -137,24 +137,114 @@ export class Crawler {
 
                     for (let attempt = 1; attempt <= 3; attempt += 1) {
                         try {
-                            await page.goto(task.sectionUrl, { waitUntil: 'domcontentloaded' })
+                            await page.goto(task.sectionUrl, { waitUntil: 'networkidle2' })
+
+                            await page.waitForSelector('#park, #main_page_content, main, article', { timeout: 15000 })
+
+                            await page
+                                .waitForFunction(() => {
+                                    const normalize = (text) => (text ?? '').replace(/\s+/g, ' ').trim()
+                                    const park = document.querySelector('#park')
+                                    const text = normalize(park?.textContent)
+
+                                    if (!text || text.length < 120) {
+                                        return false
+                                    }
+
+                                    // Skip obvious unrendered/template payloads.
+                                    if (text.includes('var reservation_data') || text.includes('<%=')) {
+                                        return false
+                                    }
+
+                                    return true
+                                }, { timeout: 10000 })
+                                .catch(() => {
+                                    // Some pages may not fully hydrate; fallback extraction still runs below.
+                                })
 
                             const pageData = await page.evaluate((sectionId) => {
                                 const normalize = (text) => (text ?? '').replace(/\s+/g, ' ').trim()
 
+                                const normalizedHash = (value) => {
+                                    if (value == null) {
+                                        return ''
+                                    }
+
+                                    const text = String(value).trim()
+
+                                    if (!text) {
+                                        return ''
+                                    }
+
+                                    if (text.startsWith('#')) {
+                                        return text.replace(/^#/, '').trim().toLowerCase()
+                                    }
+
+                                    // For raw IDs like "alerts", return the value directly.
+                                    if (!text.includes('/')) {
+                                        return text.toLowerCase()
+                                    }
+
+                                    const hashOnly = (() => {
+                                        try {
+                                            return new URL(text, window.location.href).hash
+                                        } catch {
+                                            return ''
+                                        }
+                                    })()
+
+                                    return hashOnly.replace(/^#/, '').trim().toLowerCase()
+                                }
+
+                                const cleanNodeText = (node) => {
+                                    if (!node) {
+                                        return ''
+                                    }
+
+                                    const clone = node.cloneNode(true)
+                                    clone
+                                        .querySelectorAll('script,style,noscript,template')
+                                        .forEach((el) => el.remove())
+
+                                    return normalize(clone.textContent)
+                                }
+
+                                const parkRoot = document.querySelector('#park')
+                                const mainRoot = document.querySelector('#main_page_content, main, article') ?? document.body
+
                                 const primaryRoot =
                                     document.getElementById(sectionId) ??
+                                    parkRoot?.querySelector(`[id="${sectionId}"]`) ??
                                     document.querySelector(`[data-anchor="${sectionId}"]`) ??
                                     document.querySelector(`a[name="${sectionId}"]`)?.closest('section,article,div')
 
-                                const fallbackRoot = document.querySelector('#main_page_content, main, article') ?? document.body
-                                const root = primaryRoot ?? fallbackRoot
+                                const root = primaryRoot ?? parkRoot ?? mainRoot
+                                const sectionText = cleanNodeText(root)
+                                const pageHeading = normalize(document.querySelector('#title h1, h1')?.textContent)
+                                const sectionHeading = normalize(root?.querySelector('h2,h3,h4')?.textContent)
+
+                                const requestedHash = normalizedHash(sectionId)
+                                const locationHash = normalizedHash(window.location.hash)
+                                const activeNavHash = Array.from(document.querySelectorAll('a.navlinkactive[href], a.active[href], [aria-current="page"][href]'))
+                                    .map((link) => normalizedHash(link.getAttribute('href') ?? ''))
+                                    .find(Boolean)
+
+                                // DNR pages mark the active section with navlinkactive instead of section container IDs.
+                                const sectionFound = Boolean(primaryRoot) ||
+                                    (requestedHash.length > 0 && activeNavHash === requestedHash) ||
+                                    (requestedHash.length > 0 && locationHash === requestedHash && sectionHeading.length > 0)
+
+                                const hasTemplateLeak =
+                                    sectionText.includes('var reservation_data') ||
+                                    sectionText.includes('<%=') ||
+                                    sectionText.includes('function getArgs()')
 
                                 return {
-                                    pageHeading: normalize(document.querySelector('h1')?.textContent),
-                                    sectionHeading: normalize(root?.querySelector('h2,h3,h4')?.textContent),
-                                    sectionText: normalize(root?.textContent),
-                                    sectionFound: Boolean(primaryRoot),
+                                    pageHeading,
+                                    sectionHeading,
+                                    sectionText,
+                                    sectionFound,
+                                    templateLeak: hasTemplateLeak,
                                 }
                             }, task.sectionId)
 

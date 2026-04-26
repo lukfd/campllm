@@ -1,0 +1,199 @@
+\documentclass[11pt]{article}
+
+% Change "review" to "final" to generate the final (sometimes called camera-ready) version.
+% Change to "preprint" to generate a non-anonymous version with page numbers.
+\usepackage[preprint]{acl}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out,
+% but it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+%Including images in your LaTeX document requires adding
+%additional package(s)
+\usepackage{graphicx}
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{CampLLM - Smarter State Park Search: A RAG Search Tool for Minnesota State Parks}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a separate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{Luca Comba \\
+  University of St. Thomas \\ comb6457@stthomas.edu \\}
+
+%\author{
+%  \textbf{First Author\textsuperscript{1}},
+%  \textbf{Second Author\textsuperscript{1,2}},
+%  \textbf{Third T. Author\textsuperscript{1}},
+%  \textbf{Fourth Author\textsuperscript{1}},
+%\\
+%  \textbf{Fifth Author\textsuperscript{1,2}},
+%  \textbf{Sixth Author\textsuperscript{1}},
+%  \textbf{Seventh Author\textsuperscript{1}},
+%  \textbf{Eighth Author \textsuperscript{1,2,3,4}},
+%\\
+%  \textbf{Ninth Author\textsuperscript{1}},
+%  \textbf{Tenth Author\textsuperscript{1}},
+%  \textbf{Eleventh E. Author\textsuperscript{1,2,3,4,5}},
+%  \textbf{Twelfth Author\textsuperscript{1}},
+%\\
+%  \textbf{Thirteenth Author\textsuperscript{3}},
+%  \textbf{Fourteenth F. Author\textsuperscript{2,4}},
+%  \textbf{Fifteenth Author\textsuperscript{1}},
+%  \textbf{Sixteenth Author\textsuperscript{1}},
+%\\
+%  \textbf{Seventeenth S. Author\textsuperscript{4,5}},
+%  \textbf{Eighteenth Author\textsuperscript{3,4}},
+%  \textbf{Nineteenth N. Author\textsuperscript{2,5}},
+%  \textbf{Twentieth Author\textsuperscript{1}}
+%\\
+%\\
+%  \textsuperscript{1}Affiliation 1,
+%  \textsuperscript{2}Affiliation 2,
+%  \textsuperscript{3}Affiliation 3,
+%  \textsuperscript{4}Affiliation 4,
+%  \textsuperscript{5}Affiliation 5
+%\\
+%  \small{
+%    \textbf{Correspondence:} \href{mailto:email@domain}{email@domain}
+%  }
+%}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+The State of Minnesota is home to 65 beautiful state parks. Still there are only few available options for people to search and retrieve information about parks. Navigating through the available information about state park can be cumbersome due to the large amount of data and for the nested nature of web pages. We collected all available data about Minnesota state parks and created a new optimized way for searching information using Artificial Intelligence and Retrieval-Augmented Generation methods. After chunking and indexing the data, we trained a chatbot that efficiently understands a user questions and can accurately respond while indicating the source document.
+\end{abstract}
+
+\section{Introduction}
+Minnesota with its 65 state parks ranks 15th on the list of United States State parks total area ranking, counting 267,000 total acres of state park land. The Minnesota Department of Natural Resources, through their website, publishes general information about each state park, including information about maps, seasonal updates, camping and lodging, events, reservation opportunities, trails, recreation facilities, amenities and more.
+
+I personally love camping and started few years ago, but I have found quite difficult to learn about camp sites and deciding which state park to visit next. Google Maps and other third party tools help inform the user through visuals and other people reviews. Due to the large amount of data available to people interested in learning more about Minnesota state parks has become difficult and time consuming.
+
+Artificial Intelligence and Retrieval-Augmented Generation methods offer a new easier way to access the large amount of documents that are available online about Minnesota state parks. Therefore we collected state park documents and information from the Minnesota DNR website. Then we chunked, indexed and stored the data in a Vector Database. We then trained a chatbot for searching Minnesota State Parks information so that users are able to ask questions and the artificial intelligence model can formulate an answer based on the documents.
+
+\subsection{Minimal Goals}
+For our minimal goals we decided to write a simple scraper job to grab content from the web, specifically from the DNR website. Then we focused on cleaning, chunking and indexing the collected data and stored them in a Vector Database. We then fine tuned a "answer" LLM to retireve the user question, and retrieve the related documents and generate an answer and cite the documents.
+
+As of today, we have collected and cleaned the data and we are now working on training an embedding model to embed the data into a vector database. We will then fine tune an open weight LLM and train it to retrieve the documents and generate an answer.
+
+\subsection{Optimistic Goals}
+For our optimistic goal we wanted to improve the scraper to collect third party data, such as photos or Google Maps reviews. We wanted to improve the RAG model by adding a re-ranker. Have a web ui and deploy the application on Cloud with an automated CI/CD.
+
+\section{Exploring}
+Before this class, I have not implemented a full RAG system. I had some experience with web crawling in Selenium, but not with Puppeteer and not with end-to-end retrieval pipelines.
+
+Initially I have considered other different applications such as a website that acts as a blue print and a graphic interface for designing AI systems, similar to Figma or LucidChart, but with a pre-made list of AI models based on the Arxiv dataset and foundational models. I have also had an idea for a website that can function as a tool for visual impaired people that can help reading emails and navigate the web.
+
+My main sources for topic selection and system design were: class lectures, the course book and the official Minnesota DNR web pages as the project data source.
+
+\section{Building}
+The goal of the build phase was to create a usable data pipeline for a RAG assistant focused on Minnesota state parks.
+
+I used a Puppeteer crawler to collect park content from the Minnesota DNR website. For each park and section, the crawler stores metadata and extracted text. Example metadata fields include park name, park URL, section ID, section heading, and fetch timestamp.
+
+I built a Python cleaning step that processes the raw JSONL output and writes a cleaned JSONL file.
+
+The cleaned dataset currently has 665 rows. Most rows have useful content and valid section matches, with a smaller set of false section matches mostly from redirected/closed park pages.
+
+The current design is standard RAG:
+\begin{enumerate}
+  \item Chunk cleaned text into smaller passages.
+  \item Embed chunks with one embedding model.
+  \item Store vectors in a vector database (ChromaDB is the current choice for fast iteration).
+  \item At query time, embed the user question with the same embedding model.
+  \item Retrieve top-k chunks, optionally rerank, then send context + question to the LLM.
+\end{enumerate}
+
+\section{Discovering}
+
+\subsection{Results}
+
+\subsection{Self-Assessment}
+
+
+\section{Class Topics}
+
+\subsection{1. Retrieval-Augmented Generation}
+
+RAG combines retrieval with generation. Instead of asking an LLM to answer from memory, we first retrieve relevant text from our park dataset and then provide that text to the model. This lowers hallucination risk and makes answers more grounded in the source documents.
+
+\subsection{2. Embedding Models}
+
+An embedding model converts text into vectors. In this project, park chunks and user questions should use the same embedding model so they are comparable in vector space. Similar meanings should end up close together, which helps retrieval.
+
+\subsection{3. Tokenization}
+
+Tokenization matters because LLMs and embedding models process tokens, not raw characters. If chunks are too long, they can hurt retrieval and exceed prompt limits. I used text length and token estimates to plan chunk sizes and keep prompts manageable.
+
+\subsection{4. Vector Databases}
+
+A vector database stores embeddings and supports nearest-neighbor search. For this project, ChromaDB is a good starting choice because it is easy to set up and works well for local iteration. The main tradeoff is that larger production systems may later need a more scalable option.
+
+\subsection{5. Reranking}
+
+First-pass retrieval returns a candidate set, but top results are not always best. Reranking scores candidates again using stronger matching logic and improves precision. In this project, I added a basic reranker and an optional cross-encoder reranker path.
+
+
+
+\section{Limitations}
+
+\subsection{Incomplete Work}
+
+\subsection{Ethical Issues}
+
+
+\section*{Acknowledgments}
+
+
+% Bibliography entries for the entire Anthology, followed by custom entries
+%\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
+
+% Custom bibliography entries only
+\bibliography{custom}
+
+\appendix
+
+\section{Example Appendix}
+\label{sec:appendix}
+
+This is an appendix.
+
+\end{document}

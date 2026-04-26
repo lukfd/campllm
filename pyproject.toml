@@ -1,5 +1,22 @@
 [project]
 name = "campllm"
 version = "0.1.0"
-requires-python = ">=3.9"
-dependencies = []
+requires-python = ">=3.14"
+dependencies = [
+    "chromadb>=1.5.8",
+    "google-genai>=1.73.1",
+    "model2vec>=0.7.0",
+    "python-dotenv>=1.2.2",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project.scripts]
+park = "src.script.index:main"
+database = "src.script.database:main"
+chat = "src.script.chat:main"
+
+[tool.setuptools.packages.find]
+include = ["src*"]
