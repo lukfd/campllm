@@ -5,9 +5,13 @@ from dotenv import load_dotenv
 
 
 class GeminiModel(Enum):
+    # https://ai.google.dev/gemini-api/docs/models
+    # List: curl https://generativelanguage.googleapis.com/v1beta/models?key=$GEMINI_API_KEY
     Gemini_2_5_flash_lite = "gemini-2.5-flash-lite"
     Gemini_2_5_flash = "gemini-2.5-flash"
     Gemini_3_flash_preview = "gemini-3-flash-preview"
+    Gemma_3_27b = "gemma-3-27b-it"
+    Gemma_4_31b = "gemma-4-31b-it"
 
 
 class LLM(genai.Client):

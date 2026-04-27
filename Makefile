@@ -7,3 +7,7 @@ restart:
 down:
 	docker compose stop chroma
 
+clean:
+	docker compose down -v
+	rm -rf chroma-data
+

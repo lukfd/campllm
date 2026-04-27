@@ -13,7 +13,7 @@ def main():
         "--model",
         type=GeminiModel,
         help="Gemini model to use for the chatbot",
-        default=GeminiModel.Gemini_2_5_flash_lite,
+        default=GeminiModel.Gemma_3_27b,
     )
     parser.add_argument(
         "--database-uri",
@@ -28,7 +28,11 @@ def main():
     if args.info:
         logging.getLogger("src.rag.rag").setLevel(logging.INFO)
 
-    exit_commands = ["/exit", "/quit", "/q"]
+    commands = {
+        "exit": ["/exit", "/quit", "/q"],
+        "help": ["/help", "/h"],
+        "model": ["/model"],
+    }
     print("Initializing CampLLM...", flush=True)
 
     llm = LLM(model_name=args.model)
@@ -37,19 +41,37 @@ def main():
     rag = RAG(database=database, llm=llm, embedder=embedder)
 
     print(
-        f"Welcome to the CampLLM chatbot! Type {', '.join(exit_commands)} to end the session."
+        f"Welcome to the CampLLM chatbot! Type {', '.join(commands['exit'])} to end the session."
     )
 
     while True:
         user_input = input("You: ").strip()
-        if user_input.lower() in exit_commands:
+
+        if user_input.lower() in commands["exit"]:
             print("Goodbye!")
             break
+        elif user_input.lower() in commands["help"]:
+            print(f"Commands:")
+            for cmd, aliases in commands.items():
+                print(f"  {cmd}: {', '.join(aliases)}")
+            continue
+        elif user_input.lower() in commands["model"]:
+            print(f"CampLLM: Running model {llm.model_name.value}")
+            continue
 
-        prompt = rag.generate_prompt(question=user_input, n_results=5)
+        result = rag.ask(question=user_input, n_results=5)
+        print(f"\nCampLLM: {result['answer']}\n")
 
-        llm_response = llm.send_message(prompt)
-        print(f"CampLLM: {llm_response}")
+        sources = result.get("sources", [])
+        if sources:
+            print("Sources:")
+            for source in sources:
+                print(
+                    "- [Source {source_id}] {park_name} | {section_heading} | {section_url}".format(
+                        **source
+                    )
+                )
+            print()
 
 
 if __name__ == "__main__":
