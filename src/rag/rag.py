@@ -73,7 +73,7 @@ Use inline citations like [Source N] for any factual claim supported by retrieve
 If you use only general knowledge, clearly say that it is general knowledge and not a retrieved park fact.
 
 Retrieved park context:
-{context if context else '[No retrieved park context available]'}
+{context if context else "[No retrieved park context available]"}
 
 User question:
 {question}
@@ -90,9 +90,7 @@ User question:
 
         if cited_source_ids:
             filtered_sources = [
-                source
-                for source in sources
-                if source["source_id"] in cited_source_ids
+                source for source in sources if source["source_id"] in cited_source_ids
             ]
         else:
             filtered_sources = sources

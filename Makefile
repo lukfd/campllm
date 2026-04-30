@@ -1,11 +1,11 @@
 up:
-	docker compose up -d chroma
+	docker compose up -d --build
 
 restart:
-	docker compose restart chroma
+	docker compose restart
 
 down:
-	docker compose stop chroma
+	docker compose stop
 
 clean:
 	docker compose down -v
