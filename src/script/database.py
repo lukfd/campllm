@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 
 from src.database.database import Database
 
@@ -10,7 +11,7 @@ def main():
         "--database-uri",
         type=str,
         help="Database URI",
-        default="http://localhost:8000",
+        default=os.getenv("DATABASE_URI", "http://chroma:8000"),
         required=False,
     )
     parser.add_argument(

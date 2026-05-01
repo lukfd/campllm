@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 
 from src.database.embedding import Embedding
 from src.rag.llm import LLM, GeminiModel
@@ -19,7 +20,7 @@ def main():
         "--database-uri",
         type=str,
         help="Database URI for retrieving park information",
-        default="http://localhost:8000",
+        default=os.getenv("DATABASE_URI", "http://chroma:8000"),
     )
     parser.add_argument("--info", action="store_true", help="Enable RAG info logs")
     args = parser.parse_args()

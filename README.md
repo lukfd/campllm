@@ -2,6 +2,14 @@
 
 Conversational AI final project
 
+## Environment Variables
+
+The application can be configured using the following environment variables:
+
+- `DATABASE_URI`: The full URI for the ChromaDB instance. Defaults to `http://chroma:8000` for scripts and is set in `docker-compose.yaml` for the API.
+- `CHROMA_PASSWORD`: The authentication token for ChromaDB.
+- `GOOGLE_API_KEY`: Your API key for Google Gemini.
+
 ## Data Collection
 
 The indexing workflow can optionally collect fresh raw park data with the Node crawler.

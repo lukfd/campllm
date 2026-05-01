@@ -1,6 +1,7 @@
 import chromadb
 from urllib.parse import urlparse
 from typing import Any
+import os
 
 from src.database.embedding import Embedding
 from src.database.collection.park import ParkCollection
@@ -17,10 +18,19 @@ class Database:
                 "URI must include host and port, for example: http://localhost:8000"
             )
 
+        headers = {}
+        auth_token = os.getenv("CHROMA_PASSWORD")
+        if auth_token:
+            auth_header = os.getenv(
+                "CHROMA_AUTH_TOKEN_TRANSPORT_HEADER", "Authorization"
+            )
+            headers[auth_header] = f"Bearer {auth_token}"
+
         self.client = chromadb.HttpClient(
             host=self.parsed.hostname,
             port=self.parsed.port,
             ssl=False,
+            headers=headers,
         )
 
         self.parks = ParkCollection(
