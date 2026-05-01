@@ -9,7 +9,7 @@ services:
     env_file:
       - .env
     environment:
-      - CHROMA_URI=http://chroma:8000
+      - CHROMA_URI=http://localhost:8000
     depends_on:
       - chroma
     restart: unless-stopped
