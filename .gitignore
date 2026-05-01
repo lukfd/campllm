@@ -1,6 +1,5 @@
 node_modules
 *.jsonl
-*.json
 *.pdf
 *.egg-info
 .venv
