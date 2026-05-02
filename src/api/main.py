@@ -1,9 +1,11 @@
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+from google.genai.errors import ServerError
 from pydantic import BaseModel
 import uvicorn
 import os
+import logging
 
 from src.rag.rag import RAG
 from src.database.database import Database
@@ -12,6 +14,8 @@ from src.database.embedding import Embedding
 
 app = FastAPI()
 templates = Jinja2Templates(directory="src/api/templates")
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Initialize components
 CHROMA_URI = os.environ.get("CHROMA_URI", "http://localhost:8000")
@@ -41,9 +45,16 @@ async def read_root(request: Request):
 
 @app.post("/api/chat")
 async def chat(chat_request: ChatRequest):
-    # rag_system.ask() returns a dictionary with 'answer' and 'sources'
-    response_data = rag_system.ask(chat_request.question)
-    return response_data
+    try:
+        # rag_system.ask() returns a dictionary with 'answer' and 'sources'
+        response_data = rag_system.ask(chat_request.question)
+        return response_data
+    except ServerError as e:
+        logger.error(f"GenAI ServerError while handling chat request: {e}")
+        raise HTTPException(status_code=503, detail=str(e))
+    except Exception as e:
+        logger.error(f"Unhandled error while handling chat request: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
 
 
 def main():
