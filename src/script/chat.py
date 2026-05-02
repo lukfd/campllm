@@ -19,8 +19,8 @@ def main():
     parser.add_argument(
         "--database-uri",
         type=str,
-        help="Database URI for retrieving park information",
-        default=os.getenv("DATABASE_URI", "http://localhost:8000"),
+        help="Chroma URI for retrieving park information (overrides CHROMA_URI)",
+        default=os.getenv("CHROMA_URI", "http://localhost:8000"),
     )
     parser.add_argument("--info", action="store_true", help="Enable RAG info logs")
     args = parser.parse_args()

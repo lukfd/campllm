@@ -8,11 +8,11 @@ from src.database.database import Database
 def main():
     parser = argparse.ArgumentParser(description="Test the database connection.")
     parser.add_argument(
-        "--database-uri",
-        type=str,
-        help="Database URI",
-        default=os.getenv("DATABASE_URI", "http://localhost:8000"),
-        required=False,
+           "--database-uri",
+           type=str,
+           help="Chroma URI (overrides CHROMA_URI)",
+           default=os.getenv("CHROMA_URI", "http://chroma:8000"),
+           required=False,
     )
     parser.add_argument(
         "--query", type=str, help="Query text for testing", required=False

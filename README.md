@@ -6,9 +6,24 @@ Conversational AI final project
 
 The application can be configured using the following environment variables:
 
-- `DATABASE_URI`: The full URI for the ChromaDB instance. Defaults to `http://chroma:8000` for scripts and is set in `docker-compose.yaml` for the API.
+- `CHROMA_URI`: The full URI for the ChromaDB instance. Defaults to `http://chroma:8000` for scripts and is set in `docker-compose.yaml` for the API.
 - `CHROMA_PASSWORD`: The authentication token for ChromaDB.
 - `GOOGLE_API_KEY`: Your API key for Google Gemini.
+
+Note for the `lucaone` server:
+
+- On `lucaone` the Chroma container is not port-mapped to the host. Use the container IP for `CHROMA_URI` when running scripts on that machine, for example:
+
+```
+CHROMA_URI=http://172.19.0.15:8000
+```
+
+Also set the Chroma token in the environment (or your local `.env`) as:
+
+```
+CHROMA_PASSWORD=***
+CHROMA_URI=http://172.19.0.15:8000
+```
 
 ## Data Collection
 

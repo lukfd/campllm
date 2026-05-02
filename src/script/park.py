@@ -1,6 +1,7 @@
 import argparse
 import logging
 import subprocess
+import os
 from pathlib import Path
 
 from src.util.clean import Cleaner
@@ -10,7 +11,7 @@ from src.util.index import Indexer
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
-DATABASE_URI = "http://localhost:8000"
+CHROMA_URI = os.getenv("CHROMA_URI", "http://localhost:8000")
 
 
 def collect_data(park_file: Path, chrome_path: str | None = None):
@@ -32,8 +33,8 @@ def main():
     parser.add_argument(
         "--database-uri",
         type=str,
-        help="Database URI",
-        default=DATABASE_URI,
+        help="Chroma URI (overrides CHROMA_URI)",
+        default=CHROMA_URI,
         required=False,
     )
     parser.add_argument(
