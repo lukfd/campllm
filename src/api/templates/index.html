@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>CampLLM RAG</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
     <style>
         body {
             font-family: sans-serif;
@@ -64,7 +66,13 @@
         <h1>CampLLM RAG</h1>
         <div id="chat-history">
             <div v-for="message in messages" :class="message.sender === 'user' ? 'user-message' : 'bot-message'">
-                <b>[[ message.prefix ]]</b> [[ message.text ]]
+                <b>[[ message.prefix ]]</b>
+                <template v-if="message.html">
+                    <div v-html="message.html"></div>
+                </template>
+                <template v-else>
+                    [[ message.text ]]
+                </template>
             </div>
         </div>
         <div id="input-area">
@@ -109,7 +117,17 @@
                             botText += `- ${source.park_name}: ${source.section_heading} (${source.section_url})\n`;
                         });
                     }
-                    messages.value.push({ sender: 'bot', prefix: 'Bot:', text: botText });
+
+                    // Convert Markdown to HTML and sanitize it before inserting
+                    let botHtml = '';
+                    try {
+                        const raw = (typeof marked !== 'undefined') ? marked.parse(botText) : botText.replace(/\n/g, '<br>');
+                        botHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(raw) : raw;
+                    } catch (e) {
+                        botHtml = botText;
+                    }
+
+                    messages.value.push({ sender: 'bot', prefix: 'Bot:', text: botText, html: botHtml });
 
                     await nextTick();
                     chatHistory.scrollTop = chatHistory.scrollHeight;

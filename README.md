@@ -10,9 +10,9 @@ The application can be configured using the following environment variables:
 - `CHROMA_PASSWORD`: The authentication token for ChromaDB.
 - `GOOGLE_API_KEY`: Your API key for Google Gemini.
 
-Note for the `lucaone` server:
+## Lucaone
 
-- On `lucaone` the Chroma container is not port-mapped to the host. Use the container IP for `CHROMA_URI` when running scripts on that machine, for example:
+On `lucaone` the Chroma container is not port-mapped to the host. Use the container IP for `CHROMA_URI` when running scripts on that machine, for example:
 
 ```
 CHROMA_URI=http://172.19.0.15:8000
@@ -21,8 +21,14 @@ CHROMA_URI=http://172.19.0.15:8000
 Also set the Chroma token in the environment (or your local `.env`) as:
 
 ```
-CHROMA_PASSWORD=***
+CHROMA_PASSWORD=your-password
 CHROMA_URI=http://172.19.0.15:8000
+```
+
+To run the collection script, after having setup the environment variables, run
+
+```bash
+uv run park --chrome-path $(which google-chrome) --collect --park-file ./parks.jsonl
 ```
 
 ## Data Collection
