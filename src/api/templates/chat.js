@@ -24,7 +24,11 @@ const setup = () => {
 
         await nextTick();
         const chatHistory = document.getElementById('chat-history');
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+        // scroll to bottom by bringing the last child into view
+        chatHistory.lastElementChild?.scrollIntoView({ behavior: 'auto', block: 'end' });
+
+        // show loading placeholder which we will replace with the real response
+        const loadingIndex = messages.value.push({ sender: 'bot', prefix: 'Bot:', text: '...', html: null, type: 'loading' }) - 1;
 
         const response = await fetch('/api/chat', {
             method: 'POST',
@@ -49,7 +53,8 @@ const setup = () => {
                 botText = `Error ${response.status}: ${errText || response.statusText}`;
                 const raw = (typeof marked !== 'undefined') ? marked.parse(botText) : botText.replace(/\n/g, '<br>');
                 botHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(raw) : raw;
-                messages.value.push({ sender: 'bot', prefix: 'Error:', text: botText, html: botHtml, type: 'error' });
+                // replace the loading placeholder with an error message
+                messages.value[loadingIndex] = { sender: 'bot', prefix: 'Error:', text: botText, html: botHtml, type: 'error' };
                 return;
             }
 
@@ -65,18 +70,21 @@ const setup = () => {
             // Convert Markdown to HTML and sanitize it before inserting
             const raw = (typeof marked !== 'undefined') ? marked.parse(botText) : botText.replace(/\n/g, '<br>');
             botHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(raw) : raw;
-            messages.value.push({ sender: 'bot', prefix: 'Bot:', text: botText, html: botHtml });
+            // replace the loading placeholder with the bot response
+            messages.value[loadingIndex] = { sender: 'bot', prefix: 'Bot:', text: botText, html: botHtml };
 
         } catch (err) {
             // Network or unexpected error
             botText = `Network error: ${err.message || String(err)}`;
             const raw = (typeof marked !== 'undefined') ? marked.parse(botText) : botText.replace(/\n/g, '<br>');
             botHtml = (typeof DOMPurify !== 'undefined') ? DOMPurify.sanitize(raw) : raw;
-            messages.value.push({ sender: 'bot', prefix: 'Error:', text: botText, html: botHtml, type: 'error' });
+            // replace the loading placeholder with an error message
+            messages.value[loadingIndex] = { sender: 'bot', prefix: 'Error:', text: botText, html: botHtml, type: 'error' };
         }
 
         await nextTick();
-        chatHistory.scrollTop = chatHistory.scrollHeight;
+        // ensure the latest message is visible
+        chatHistory.lastElementChild?.scrollIntoView({ behavior: 'smooth', block: 'end' });
     }
 
     return {

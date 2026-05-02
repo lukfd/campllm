@@ -1,97 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CampLLM RAG</title>
+    <title>CampLLM</title>
     <script src="https://unpkg.com/vue@3/dist/vue.global.prod.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/dompurify@2.4.0/dist/purify.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <style>
-        body {
-            font-family: sans-serif;
-            background-color: white;
-            margin: 0;
-            padding: 2%;
-            display: flex;
-            justify-content: center;
-        }
-        #app {
-            width: 80%;
-            max-width: 800px;
-            display: flex;
-            flex-direction: column;
-            height: 90vh;
-        }
-        #chat-history {
-            flex-grow: 1;
-            overflow-y: auto;
-            padding: 1% 0;
-        }
-        #input-area {
-            display: flex;
-            padding: 1% 0;
-        }
-        input {
-            flex-grow: 1;
-            padding: 1.5%;
-            font-size: 1.1em;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            background-color: #eeeeee;
-        }
-        button {
-            padding: 1% 2%;
-            border: none;
-            background-color: #007bff;
-            color: white;
-            border-radius: 4px;
-            margin-left: 1%;
-            cursor: pointer;
-        }
-        .user-message {
-            text-align: right;
-            margin-bottom: 1%;
-        }
-        .bot-message {
-            text-align: left;
-            margin-bottom: 1%;
-            color: #333;
-            white-space: pre-wrap; /* This will respect newlines */
-        }
-        .error-message {
-            text-align: left;
-            margin-bottom: 1%;
-            color: #7a0b0b;
-            background-color: #fff4f4;
-            border-left: 4px solid #f44336;
-            padding: 8px 12px;
-            white-space: pre-wrap;
-        }
-    </style>
 </head>
-<body>
-    <div id="app">
-        <p class="text-3xl font-bold">CampLLM <span class="text-sm font-normal text-blue-500">[[ model ]]</span></p>
-        <p class="text-md text-gray-500">Chat with the CampLLM RAG system. Ask questions about Minnesota state parks.</p>
-        <div id="chat-history">
-            <div v-for="message in messages" :class="message.sender === 'user' ? 'user-message' : (message.type === 'error' ? 'error-message' : 'bot-message')">
-                <b>[[ message.prefix ]]</b>
-                <template v-if="message.html">
-                    <div v-html="message.html"></div>
-                </template>
-                <template v-else>
-                    [[ message.text ]]
-                </template>
+
+<body class="min-h-screen bg-white text-gray-900">
+    <div id="app" class="mx-auto flex min-h-screen max-w-3xl flex-col p-4">
+        <h1 class="text-2xl font-semibold">CampLLM <span class="text-sm font-normal text-blue-500 pl-4">[[ model ]]</span></h1>
+        <p class="mt-1 text-sm text-gray-500">Chat with the CampLLM RAG system. Ask questions about Minnesota state parks <img src="https://cdn3.emoji.gg/emojis/98422-minnesota.png" alt="Minnesota" class="inline-block h-[2.25em] w-auto pl-4"></p>
+
+        <div class="mt-4 flex flex-1 flex-col rounded border bg-gray-100">
+            <div id="chat-history" class="flex-1 overflow-y-auto p-4">
+                <div v-for="message in messages" :class="message.sender === 'user' ? 'text-right' : ''">
+                    <div class="mb-3 inline-block max-w-[85%] rounded border bg-white px-3 py-2 text-sm" :class="message.sender === 'user' ? 'bg-gray-50' : (message.type === 'error' ? 'bg-red-50' : '')">
+                        <div class="text-xs text-gray-500">[[ message.prefix ]]</div>
+                        <div v-if="message.html" v-html="message.html"></div>
+                        <div v-else>[[ message.text ]]</div>
+                    </div>
+                </div>
+                <div id="chat-end"></div>
             </div>
-        </div>
-        <div id="input-area">
-            <input type="text" v-model="question" @keyup.enter="askQuestion" placeholder="Ask a question about parks...">
-            <button @click="askQuestion">Send</button>
+
+            <div class="border-t p-3">
+                <div class="flex gap-2">
+                    <input type="text" v-model="question" @keyup.enter="askQuestion" placeholder="Ask a question about parks..." class="flex-1 rounded border px-3 py-2">
+                    <button @click="askQuestion" class="rounded bg-gray-800 px-4 py-2 text-white">Send</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script src="static/chat.js"></script>
 </body>
+
 </html>
