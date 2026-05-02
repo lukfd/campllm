@@ -16,7 +16,7 @@ class GeminiModel(Enum):
 
 class LLM(genai.Client):
     def __init__(
-        self, model_name: GeminiModel = GeminiModel.Gemini_2_5_flash_lite, **kwargs
+        self, model_name: GeminiModel = GeminiModel.Gemma_4_31b, **kwargs
     ):
         self.model_name = model_name
         load_dotenv()  # Load environment variables from .env file

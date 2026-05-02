@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from google.genai.errors import ServerError
 from pydantic import BaseModel
@@ -12,10 +13,12 @@ from src.database.database import Database
 from src.rag.llm import LLM
 from src.database.embedding import Embedding
 
-app = FastAPI()
-templates = Jinja2Templates(directory="src/api/templates")
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
+
+app = FastAPI()
+templates = Jinja2Templates(directory="src/api/templates")
+app.mount("/static", StaticFiles(directory="src/api/templates"), name="static")
 
 # Initialize components
 CHROMA_URI = os.environ.get("CHROMA_URI", "http://localhost:8000")
@@ -55,6 +58,11 @@ async def chat(chat_request: ChatRequest):
     except Exception as e:
         logger.error(f"Unhandled error while handling chat request: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/model")
+async def get_model():
+    return {"model": llm.model_name.value}
 
 
 def main():
