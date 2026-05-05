@@ -41,7 +41,7 @@
 %
 % and set <dim> to something 5cm or larger.
 
-\title{Smarter Park Search: A RAG Chatbot for Minnesota State Parks}
+\title{CampLLM: A RAG Chatbot for Minnesota State Parks}
 
 % Author information can be set in various styles:
 % For several authors from the same institution:
@@ -111,10 +111,12 @@ Minnesota, with its 65 state parks, ranks 15th on the list of United States' sta
 
 I personally love camping, and since I started a few years ago, I have found it quite difficult to find state park information online. While Google Maps and other third-party tools help inform users through maps and reviews, searching through the vast amount of available data has become difficult and time-consuming.
 
-Retrieval-Augmented Generation (RAG) methods offer an easier way to access and search through a large number of documents. We collected state park data from the internet, cleaned it, and structured it into documents. We then chunked, indexed, and stored the data in a vector database. After preparing the data, we built a chatbot for searching Minnesota State Parks information. This allows users to ask any questions they might have about state parks, and the AI model can formulate an answer based on the collected documents.
+Retrieval-Augmented Generation (RAG) methods offer an easier way to access and search through a large number of documents. We collected state park data from the internet (specifically from the Minnesota DNR pages), cleaned it, and structured it into documents. We then chunked, indexed, and stored the data in a vector database. After preparing the data, we built a chatbot for searching Minnesota State Parks information. This allows users to ask any questions they might have about state parks, and the AI model can formulate an answer based on the collected documents.
+
+To access and interact with the RAG system previously described, I have created a Command Line Interface chatbot and a web page served by a FastAPI service, making the system easier to use outside of the terminal. The chatbot accessible via the web is available at \href{https://campllm.techypond.com/}{https://campllm.techypond.com}
 
 \subsection{Minimal Goals}
-For our minimal goals, we decided to write a simple scraper to grab content from the web, specifically from the DNR website. We then focused on cleaning, chunking, and indexing the collected data into a vector database. Initially, we thought we could train and fine-tune a Large Language Model (LLM) from scratch, similar to what Andrej Karpathy did with NanoChat \cite{nanochat}. However, due to time and resource constraints, we pivoted to building a RAG solution. This approach retrieves relevant documents in response to a user's question and uses a pre-trained LLM, in our case Gemini \cite{gemini}, to generate an answer and cite the sources. We built a command-line interface (CLI) as the main way to interact with the RAG API. This chat CLI allows the user to type a question, which is then embedded to retrieve related state park documents and passed to the LLM for answer generation.
+For our minimal goals, we decided to write a simple scraper to grab content from the web, specifically from the DNR website \cite{dnr}. We then focused on cleaning, chunking, and indexing the collected data into a vector database. Initially, we thought we could train and fine-tune a Large Language Model (LLM) from scratch, similar to what Andrej Karpathy did with NanoChat \cite{nanochat}. However, due to time and resource constraints, we pivoted to building a RAG solution. This approach retrieves relevant documents in response to a user's question and uses a pre-trained LLM, in our case Gemini \cite{gemini}, to generate an answer and cite the sources. We built a command-line interface (CLI) as the main way to interact with the RAG API. This chat CLI allows the user to type a question, which is then embedded to retrieve related state park documents and passed to the LLM for answer generation.
 
 \subsection{Optimistic Goals}
 Our optimistic goals include improving the scraper to collect third-party data, such as photos or Google Maps reviews. We also want to improve the RAG model by adding a re-ranker. Another goal is to build a web interface to allow users to connect and chat directly in their browsers. The deployment of the application would also change, with the application running on a cloud platform with an automated CI/CD pipeline.
@@ -129,7 +131,7 @@ My main sources for topic selection and system design were: class lectures, the 
 \section{Building}
 The source code for this project is available on GitHub at \href{https://github.com/lukfd/campllm}{https://github.com/lukfd/campllm}.
 
-The goal of the build phase was to create a usable data pipeline for a RAG assistant focused on Minnesota state parks. The core of this pipeline is a set of three command-line interface (CLI) scripts that handle data processing and user interaction.
+The goal of the build phase was to create a usable data pipeline for a RAG assistant focused on Minnesota state parks. The core of this pipeline is a set of command-line tools and a small web application that handle data processing and user interaction.
 
 I used a Puppeteer crawler to collect park content from the Minnesota DNR website. For each park and section, the crawler stores metadata and extracted text. Example metadata fields include park name, park URL, section ID, section heading, and fetch timestamp.
 
@@ -137,16 +139,20 @@ The data processing is orchestrated by three main Python scripts:
 \begin{itemize}
     \item \texttt{src/script/index.py}: This script serves as the main entry point for the data pipeline. It can trigger the Node.js crawler to collect fresh data, or it can work with an existing collected data file. The script collects raw data, cleans it, chunks it into smaller sections and uploads them into a ChromaDB \cite{chroma} vector database. The uploaded data is embedded with an embedding model and metadata are stored alongside.
     \item \texttt{src/script/database.py}: This is a utility script for interacting directly with the ChromaDB instance. It lists collections, run semantic queries, or peek at a sample of the stored entries.
-    \item \texttt{src/script/chat.py}: This script launches the interactive chatbot. Here, the user asks a question, the script embeds the query, retrieves the most relevant document chunks from ChromaDB, and then passes the question along with the retrieved context to the Gemini LLM \cite{gemini} to generate a answer with source citations.
+    \item \texttt{src/script/chat.py}: This script launches the interactive chatbot CLI. Here, the user asks a question, the script embeds the query, retrieves the most relevant document chunks from ChromaDB, and then passes the question along with the retrieved context to the Gemini LLM \cite{gemini} to generate a answer with source citations.
 \end{itemize}
 
-After having collected and processed the data, the cleaned text is chunked into smaller passages. These chunks are uploaded to Chroma and embedded using an embedding model, in our case we used \code{minishlab/potion-base-8M}. The resulting vectors are stored in a vector database: ChromaDB. At query time, the user's question is embedded with the same model. The system then retrieves the top-k most relevant chunks, which can optionally be reranked, before sending the context and the original question to the LLM for answer generation.
+On top of the CLI workflow, I built a FastAPI application with a simple Vue chat webpage. The API exposes \texttt{/api/chat} and \texttt{/api/model}, serves the front-end page, and returns grounded answers from the same RAG pipeline used by the CLI. The I have setup a GitHub Actions workflow that builds and publishes the web API in Docker container image.
+
+After having collected and processed the data, the cleaned text is chunked into smaller passages. These chunks are uploaded to Chroma and embedded using an embedding model, in our case we used \texttt{minishlab/potion-base-8M}. The resulting vectors are stored in a vector database: ChromaDB. At query time, the user's question is embedded with the same model. The system then retrieves the top-k most relevant chunks, which can optionally be reranked, before sending the context and the original question to the LLM for answer generation.
 
 \section{Discovering}
 Thanks to this project I have learned how to use Puppeteer to crawl and extract data from a website. I have also learned how to use the Chroma database to store and retrieve vector embeddings. Additionally, I have gained experience in building a RAG pipeline and integrating it with a pre-trained LLM for answer generation.
 
 \subsection{Results}
 The primary result of this project is a functional RAG chatbot capable of answering questions about Minnesota state parks. The chatbot demonstrates the effectiveness of the data pipeline, from crawling and indexing to retrieval and generation.
+
+Now users can interact with the chatbot through a web interface and the command line interface.
 
 The following examples from a chat session illustrate the chatbot's capabilities. In the first interaction, the user asks for specific details about Frontenac State Park:
 
@@ -218,9 +224,9 @@ These are all within roughly an hour's drive,
 depending on traffic.
 \end{lstlisting}
 
-This interaction is particularly insightful. The retrieval mechanism found documents related to "parks close to" another park (Upper Sioux Agency), but the LLM correctly identified that this context did not directly answer the user's question about the Twin Cities. It presented the retrieved information transparently, explained its limitations, and then used its general knowledge to provide a more relevant and helpful answer. This highlights the model's ability to reason about the provided context and avoid generating a misleading response.
+This result is quite interesting. The retrieval mechanism found documents related to "parks close to" an unrelated park, the Upper Sioux Agency, but the LLM correctly identified that this context did not directly answer the user's question about the Twin Cities. This shows its limitations, because it correctly used its general knowledge to provide a more relevant and helpful answer, but because of the lack of content it was unable to answer the question. This shows the model's ability to reason about the provided context and avoid generating a misleading response.
 
-The chat interface also includes helper commands, such as \texttt{/model} to check the current LLM and \texttt{/q} to exit the session.
+The CLI also includes helper commands, such as \texttt{/model} to check the current LLM and \texttt{/q} to exit the session.
 
 \subsection{Self-Assessment}
 Before starting this class, I did not have experience with either RAG, vector databases or LLM apis. Thanks to this project I was able to create a working chatbot that can answer questions by utilizing a LLM api and a vector database.
@@ -240,17 +246,17 @@ I came to understand that tokenization is a critical step because LLMs and embed
 A vector database is designed to store these text embeddings and run efficient nearest neighbor searches. For this project, I chose Chroma because it was simple to set up and worked well for local development and testing \cite{vectordb_lecture}.
 
 \subsection{5. Reranking}
-The initial retrieval step provides a set of candidate documents, but the top results aren't always the most relevant. Reranking helps improve precision by scoring the candidates a second time using a more sophisticated matching logic. In my project, I implemented a basic reranker and also designed an optional path to use a more advanced cross-encoder reranker \cite{reranking_lecture}.
+The initial retrieval step provides a set of candidate documents, but the top results aren't always the most relevant. Reranking helps improve precision by scoring the candidates a second time using a more sophisticated matching logic. In my project, I wanted to implement a basic reranker to help generating better answers \cite{reranking_lecture}.
 
 
 \section{Limitations}
 
 \subsection{Incomplete Work}
-Due to time constraints, I was not able to implement the web interface and automate a build pipeline for the CI/CD pipeline. 
-
 The lack of a more complete dataset that includes more details on the parks, such as photos, reviews, maps, also limits the chatbot's ability to provide complete answers.
 
-The chatbot's prompt is quite basic and could be improved with better instructions, examples, and formatting to help the LLM generate more accurate and informative responses.
+The chatbot's prompt is basic and could be improved with better instructions, by showing examples, and formatting to help the LLM generate more accurate and informative responses.
+
+The browser interface is minimalistic and features can be added later on like describing how to use the chatbot and its capabilities, allow user feedback and user authentication.
 
 \section*{Acknowledgments}
 I would like to thank my professor, Dr. Ebrahim “Abe” Kazemzadeh.
@@ -259,7 +265,7 @@ I would also like to thank my classmates and the entire University of St. Thomas
 
 Thank you to my family, Elena and Albino, and thank you to Gillian, Thomas, Ivan, Tyler and Daniel.
 
-Additially, throughout the project I have utilized Github Copilot and Gemini for code generation and debugging.
+Additionally, throughout the project I have utilized GitHub Copilot and Gemini for code generation and debugging.
 
 % Bibliography entries for the entire Anthology, followed by custom entries
 %\bibliography{custom,anthology-overleaf-1,anthology-overleaf-2}
